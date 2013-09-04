@@ -47,8 +47,8 @@ implementation
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   ConstructPins;
-
   FMidpin := TMidpin.Create;
+  RenderPins;
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
@@ -92,7 +92,7 @@ begin
     FButtons[i].Height  := BUTTONSIZE;
     FButtons[i].OnClick := @OnPinBtnClick;
     FButtons[i].Parent  := PanelButtons;
-    FButtons[i].Visible := ((i mod 9) in [3..5]) or (((i div 9) in [3..5]))
+    FButtons[i].Visible := True;
   end;
 
   PanelButtons.Width  := 9 * (BUTTONSIZE + BUTTONMARGIN) + (2*BORDERMARGIN);
@@ -105,10 +105,23 @@ var
 begin
   for i := Low(FButtons) to High(FButtons) do
   begin
-    if FMidpin.Pin[i mod 9, i div 9] then
-      FButtons[i].Caption := 'X'
-    else
-      FButtons[i].Caption := '-';
+    case FMidpin.Pin[i mod 9, i div 9] of
+    pinYes:
+      begin
+        FButtons[i].Visible := True;
+        FButtons[i].Caption := 'X';
+      end;
+    pinNo:
+      begin
+        FButtons[i].Visible := True;
+        FButtons[i].Caption := '-';
+      end;
+    pinDisabled:
+      begin
+        FButtons[i].Visible := False;
+        FButtons[i].Caption := '?';
+      end;
+    end;
   end;
 end;
 
@@ -126,7 +139,10 @@ begin
   ]);
 
   // Toggle test
-  FMidpin.Pin[index mod 9, index div 9] := not FMidpin.Pin[index mod 9, index div 9];
+  case FMidpin.Pin[index mod 9, index div 9] of
+    pinYes: FMidpin.Pin[index mod 9, index div 9] := pinNo;
+    pinNo:  FMidpin.Pin[index mod 9, index div 9] := pinYes;
+  end;
   RenderPins;
 end;
 

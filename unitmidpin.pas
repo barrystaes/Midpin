@@ -11,19 +11,19 @@ type
 
   { TMidpin }
 
-  TPin = [pinYes, pinNo, pinDisabled];
+  TPin = (pinYes, pinNo, pinDisabled);
 
   TMidpin = class(TObject)
   private
-    FVeld : array [1..9,1..9] of Boolean;
+    FVeld : array [0..80] of TPin;
 
-    function  GetPin(x,y: Integer): Boolean;
-    procedure SetPin(x,y: Integer; value: Boolean);
+    function  GetPin(x,y: Integer): TPin;
+    procedure SetPin(x,y: Integer; value: TPin);
   public
     constructor Create; overload;
     procedure ResetVeld;
 
-    property Pin[x,y: Integer] : Boolean read GetPin write SetPin;
+    property Pin[x,y: Integer] : TPin read GetPin write SetPin;
   end;
 
 
@@ -31,14 +31,14 @@ implementation
 
 { TMidpin }
 
-function TMidpin.GetPin(x, y: Integer): Boolean;
+function TMidpin.GetPin(x, y: Integer): TPin;
 begin
-  Result := FVeld[x,y];
+  Result := FVeld[x * 9 + y];
 end;
 
-procedure TMidpin.SetPin(x, y: Integer; value: Boolean);
+procedure TMidpin.SetPin(x, y: Integer; value: TPin);
 begin
-  FVeld[x,y] := value;
+  FVeld[x * 9 + y] := value;
 end;
 
 constructor TMidpin.Create;
@@ -48,13 +48,17 @@ end;
 
 procedure TMidpin.ResetVeld;
 var
-  i,j : Integer;
+  i : Integer;
 begin
+  // Standaard speelveld door Silvia
   for i := Low(FVeld) to High(FVeld) do
-      for j := Low(FVeld[i]) to High(FVeld[i]) do
-          FVeld[i][j] := True;
-
-  FVeld[4][4] := False;
+  begin
+    if ((i mod 9) in [3..5]) or (((i div 9) in [3..5])) then
+      FVeld[i] := pinYes
+    else
+      FVeld[i] := pinDisabled;
+  end;
+  FVeld[4 * 9 + 4] := pinNo;
 end;
 
 end.
