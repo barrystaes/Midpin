@@ -27,6 +27,8 @@ type
     FButtons : array[0..80] of TSpeedButton;
     FMidpin : TMidpin;
 
+    handSubject, handTarget: TPoint; // the current move
+
     procedure ConstructPins;
     procedure RenderPins;
 
@@ -46,6 +48,9 @@ implementation
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
+  handSubject := Point(-1,-1);
+  handTarget  := Point(-1,-1);
+
   ConstructPins;
   FMidpin := TMidpin.Create;
   RenderPins;
@@ -138,11 +143,21 @@ begin
     index div 9
   ]);
 
+  // test move rules
+  handTarget := handSubject; // shift
+  handSubject := Point(index mod 9, index div 9);
+  if (handTarget.x<>-1) and FMidpin.MoveJump(handSubject,handTarget,True) then
+    Self.Caption := Self.Caption + ' allowed';
+
   // Toggle test
-  case FMidpin.Pin[index mod 9, index div 9] of
-    pinYes: FMidpin.Pin[index mod 9, index div 9] := pinNo;
-    pinNo:  FMidpin.Pin[index mod 9, index div 9] := pinYes;
-  end;
+  //case FMidpin.Pin[index mod 9, index div 9] of
+  //  pinYes: FMidpin.Pin[index mod 9, index div 9] := pinNo;
+  //  pinNo:  FMidpin.Pin[index mod 9, index div 9] := pinYes;
+  //end;
+
+  // Execute move
+  FMidpin.MoveJump(handSubject,handTarget,False);
+
   RenderPins;
 end;
 
