@@ -25,6 +25,9 @@ type
 
     function MoveJump(pinSubject, pinTarget: TPoint; test: Boolean): Boolean;
 
+    function IsValidSubjectPin(p:TPoint): Boolean;
+    function IsValidTargetPin(p:TPoint): Boolean;
+
     property Pin[x,y: Integer] : TPin read GetPin write SetPin;
   end;
 
@@ -52,7 +55,7 @@ procedure TMidpin.ResetVeld;
 var
   i : Integer;
 begin
-  // Standaard speelveld door Silvia
+  // Default board by Silvia
   for i := Low(FVeld) to High(FVeld) do
   begin
     if ((i mod 9) in [3..5]) or (((i div 9) in [3..5])) then
@@ -67,18 +70,10 @@ function TMidpin.MoveJump(pinSubject, pinTarget: TPoint; test: Boolean): Boolean
 var
   pinBetween : TPoint;
 begin
-  { Conditions are:
-    - pinSubject = pinYes
-    - pinTarget = pinNo
-    - Subject and target exactly 2 pins apart on either Y or X axis?
-    - pinBetween = pinYes
-  }
-
   Result := (
-    // Subject exists, and target is empty?
-    (Pin[pinSubject.x, pinSubject.y] = pinYes) and
-    (Pin[pinTarget.x, pinTarget.y] = pinNo) and
-    // Target coördinate delta is 2 on exactly one axis?
+    IsValidSubjectPin(pinSubject) and
+    IsValidTargetPin(pinTarget) and
+    // Subject,Target coördinate delta is 0,2 or 2,0 ?
     (
       (abs(pinSubject.x - pinTarget.x) = 2) xor
       (abs(pinSubject.y - pinTarget.y) = 2)
@@ -102,6 +97,16 @@ begin
     Pin[pinBetween.x, pinBetween.y] := pinNo;
     Pin[pinTarget.x , pinTarget.y ] := pinYes;
   end;
+end;
+
+function TMidpin.IsValidSubjectPin(p: TPoint): Boolean;
+begin
+  Result := Pin[p.x, p.y] = pinYes;
+end;
+
+function TMidpin.IsValidTargetPin(p: TPoint): Boolean;
+begin
+  Result := Pin[p.x, p.y] = pinNo;
 end;
 
 end.

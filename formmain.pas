@@ -12,6 +12,9 @@ uses
 
 
 type
+  THand = record
+    SubjectPin{, TargetPin} : TPoint;
+  end;
 
   { TForm1 }
 
@@ -27,7 +30,7 @@ type
     FButtons : array[0..80] of TSpeedButton;
     FMidpin : TMidpin;
 
-    handSubject, handTarget: TPoint; // the current move
+    Hand : THand; // The current potential hand/move.
 
     procedure ConstructPins;
     procedure RenderPins;
@@ -42,14 +45,20 @@ var
 
 implementation
 
+uses
+  // TPoint operators
+  GraphMath;
+
+const
+  NOPIN : TPoint = (x:-1; y:-1);
+
 {$R *.lfm}
 
 { TForm1 }
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  handSubject := Point(-1,-1);
-  handTarget  := Point(-1,-1);
+  Hand.SubjectPin := NOPIN;
 
   ConstructPins;
   FMidpin := TMidpin.Create;
@@ -132,31 +141,28 @@ end;
 
 procedure TForm1.OnPinBtnClick(Sender: TObject);
 var
-  index : Integer;
+  clickedIndex : Integer;
+  clickedPoint : TPoint;
 begin
-  index := (Sender as TSpeedButton).Tag;
+  clickedIndex := (Sender as TSpeedButton).Tag;
+  clickedPoint := Point(clickedIndex mod 9, clickedIndex div 9);
 
-  // debug
-  Self.Caption := Format('%d = %dx%d', [
-    index,
-    index mod 9,
-    index div 9
-  ]);
+  if FMidpin.IsValidSubjectPin(clickedPoint) then
+  begin
+    // Set subject
+    Hand.SubjectPin := clickedPoint;
+  end
+  else
+  if (Hand.SubjectPin <> NOPIN) and FMidpin.IsValidTargetPin(clickedPoint) then
+  begin
+    // Use target
 
-  // test move rules
-  handTarget := handSubject; // shift
-  handSubject := Point(index mod 9, index div 9);
-  if (handTarget.x<>-1) and FMidpin.MoveJump(handSubject,handTarget,True) then
-    Self.Caption := Self.Caption + ' allowed';
+    // Execute move
+    FMidpin.MoveJump(Hand.SubjectPin, clickedPoint, False);
 
-  // Toggle test
-  //case FMidpin.Pin[index mod 9, index div 9] of
-  //  pinYes: FMidpin.Pin[index mod 9, index div 9] := pinNo;
-  //  pinNo:  FMidpin.Pin[index mod 9, index div 9] := pinYes;
-  //end;
-
-  // Execute move
-  FMidpin.MoveJump(handSubject,handTarget,False);
+    // Reset
+    Hand.SubjectPin := NOPIN;
+  end;
 
   RenderPins;
 end;
